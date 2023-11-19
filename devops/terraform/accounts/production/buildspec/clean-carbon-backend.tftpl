@@ -1,0 +1,32 @@
+  version: 0.2
+  env:
+    shell: bash
+    parameter-store:
+      GITHUB_TOKEN: "GITHUB_TOKEN"
+  phases:
+    pre_build:
+      on-failure: ABORT
+      commands:
+      - echo 'Start pre build phase'
+      - export REPO_NAME=$(jq -r '.repo_name' metadata.json)
+      - export BRANCH_NAME=$(jq -r '.branch_name' metadata.json)
+      - mkdir working_dir && cd working_dir
+      - git clone https://oauth2:$GITHUB_TOKEN@github.com/$REPO_NAME .
+      - git checkout $BRANCH_NAME
+      - export LASTEST_COMMIT_ID=`git log -1 --format=%H | cut -c 1-8`
+      - export IMAGE_TAG=$LASTEST_COMMIT_ID
+    build:
+      commands:
+      - aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ACCOUNTID.dkr.ecr.$REGION.amazonaws.com
+      - docker build -t $REPOSITORY_URI:latest -f devops/Dockerfile_cicd .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
+    
+    post_build:
+      commands:
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - printf '[{"name":"api","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > ../artifact.json
+  artifacts:
+    files:
+      - artifact.json
+    name: artifacts-api
