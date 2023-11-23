@@ -10,6 +10,8 @@ import {
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { SocketEvent } from 'src/events/event.constant';
+import * as fs from 'fs';
+import { Client } from 'socket.io/dist/client';
 
 @WebSocketGateway()
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -86,5 +88,38 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       ...body,
       from: 'server',
     });
+  }
+
+  @SubscribeMessage('requestFile')
+  handleFileRequest(
+    @MessageBody() data: { fileName: string },
+    @ConnectedSocket() client: Socket,
+  ): void {
+    try {
+      const { fileName } = data;
+      const filePath = `/Users/thanhle/Desktop/self-study/devops/nestjs-terraform/src/events/test.png`;
+      console.log('fileName: ', fileName);
+      const readStream = fs.createReadStream(filePath, {
+        highWaterMark: 40 * 1024,
+      }); // Adjust chunk size as needed
+      const stats = fs.statSync(filePath);
+      const fileSize = stats.size;
+
+      this.server.to(client.id).emit('fileSize', fileSize);
+
+      readStream.on('data', (chunk) => {
+        // console.log('chunk: ', chunk);
+        this.server.to(client.id).emit('fileChunk', chunk);
+      });
+      readStream.on('end', () => {
+        this.server.emit('fileComplete');
+        console.log('File sent');
+      });
+
+      readStream.on('error', (error) => {
+        // Handle error, maybe emit an error event to the client
+        console.error('File read error:', error);
+      });
+    } catch (error) {}
   }
 }

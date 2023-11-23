@@ -36,6 +36,7 @@ export class AppService {
 
   async getUserRedis() {
     const rs = (await this.cache.get('random-number')) || 0;
+
     return {
       data: rs,
     };
@@ -43,6 +44,19 @@ export class AppService {
   async postUserRedis() {
     await this.cache.set('random-number', Math.floor(Math.random() * 100));
     const rs = await this.cache.get('random-number');
+    return {
+      data: rs,
+    };
+  }
+
+  // query get user with fulltext search like 'thanh'
+  async getUserFulltextSearch() {
+    const rs = await this.userRepo
+      .createQueryBuilder('user')
+      .where('MATCH (user.firstName) AGAINST (:firstName IN BOOLEAN MODE)', {
+        firstName: 'thanh',
+      })
+      .getMany();
     return {
       data: rs,
     };

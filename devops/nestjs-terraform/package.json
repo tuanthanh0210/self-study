@@ -41,6 +41,7 @@
     "cache-manager": "4.1.0",
     "cache-manager-redis-store": "2.0.0",
     "dotenv": "^16.3.1",
+    "fs": "^0.0.1-security",
     "mysql2": "^3.6.3",
     "nestjs-console": "^9.0.0",
     "redis": "^4.6.10",
