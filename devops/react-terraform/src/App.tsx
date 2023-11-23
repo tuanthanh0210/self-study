@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import logo from './terraform.png';
 import './App.css';
 import axios from 'axios';
@@ -7,6 +7,11 @@ import { socket } from './socket';
 const API = process.env.REACT_APP_API;
 
 function App() {
+  const [fileData, setFileData] = useState<any[]>([]);
+  const [imageUrl, setImageUrl] = useState('');
+  const [fileSize, setFileSize] = useState(0);
+  const blobRef = useRef<Blob>();
+
   useEffect(() => {
     (async () => {
       await axios.get(`${API}/user-mysql`);
@@ -14,9 +19,8 @@ function App() {
     })();
   }, []);
 
+  socket.connect();
   useEffect(() => {
-    socket.connect();
-
     socket.emit('NEW_MESSAGE', {
       message: 'Hello Terraform',
     });
@@ -26,9 +30,40 @@ function App() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!blobRef.current || blobRef.current?.size <= fileSize) {
+      socket.emit('requestFile', { fileName: 'test.png' });
+    }
+
+    socket.on('fileSize', (size) => {
+      console.log('size: ', size);
+      setFileSize(size);
+    });
+
+    socket.on('fileChunk', (chunk) => {
+      setFileData((oldChunks) => [...oldChunks, chunk]);
+    });
+
+    socket.on('fileComplete', () => {
+      const blob = new Blob(fileData, { type: 'image/png' });
+      console.log('blob: ', blob);
+      blobRef.current = blob;
+      setImageUrl(URL.createObjectURL(blob));
+    });
+
+    return () => {
+      // socket.disconnect();
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl); // Clean up
+      }
+    };
+  }, [imageUrl]);
+  console.log('imageUrl: ', imageUrl);
+
   return (
     <div className="App">
       <header className="App-header">
+        <img width={1000} height={600} src={imageUrl} alt="" />
         <img src={logo} className="App-logo" alt="logo" />
         <a
           className="App-link"
