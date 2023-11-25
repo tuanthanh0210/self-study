@@ -1,0 +1,52 @@
+# How to run: make -f Makefile_ES --host=thanhle2 --port=9200 --index_name=thanhle2 <command>
+
+ifndef
+host:=thanhle2
+port:=9200
+url=http://$(host):$(port)
+index_name:=thanhle2
+endif
+
+# Cluster + Index
+cluster-info:
+	@curl -XGET "$(url)/_cluster/health?pretty" | jq .
+
+list-index:
+	@curl -XGET "$(url)/_cat/indices?v" | jq .
+
+create-index:	
+	@curl -XPUT "$(url)/$(index_name)" -H 'Content-Type: application/json' -d'{"settings": {"number_of_shards": 1, "number_of_replicas": 0}}' | jq .
+
+delete-index:
+	@curl -XDELETE "$(url)/$(index_name)" | jq .
+
+# Document
+
+create-doc:
+	@curl -XPOST "$(url)/$(index_name)/_doc" -H 'Content-Type: application/json' -d'{"name": "Thanh Le", "age": 30}' | jq .
+
+get-all-docs:
+	@curl -XGET "$(url)/$(index_name)/_search" -H 'Content-Type: application/json' -d'{ "query": { "match_all": {} }}' | jq .
+
+get-detail-doc:
+	@curl -XGET "$(url)/$(index_name)/_doc/$(id)" | jq .
+
+update-doc:
+	@curl -XPOST "$(url)/$(index_name)/_doc/$(id)/_update" -H 'Content-Type: application/json' -d'{"doc": {"name": "Thanh Le", "age": 30, isRick: false}}' | jq .	
+
+delete-doc:
+	@curl -XDELETE "$(url)/$(index_name)/_doc/$(id)" | jq .
+
+search-doc:
+	@curl -XGET "$(url)/$(index_name)/_search" -H 'Content-Type: application/json' -d'{ "query": { "match": { "name": "Thanh Le" }}}' | jq .
+
+agreration-doc:
+	@curl -XGET "$(url)/$(index_name)/_search" -H 'Content-Type: application/json' -d'{ "aggs": { "avg_age": { "avg": { "field": "age" }}}}' | jq .
+
+# Mapping
+get-mapping:
+	@curl -XGET "$(url)/$(index_name)/_mapping" | jq .
+
+# Bulk
+bulk-doc:
+	@curl -XPOST "$(url)/$(index_name)/_bulk?pretty" -H 'Content-Type: application/json' --data-binary @temp-elaticsearch.txt | jq .
