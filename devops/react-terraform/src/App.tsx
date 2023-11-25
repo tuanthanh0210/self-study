@@ -9,7 +9,7 @@ const API = process.env.REACT_APP_API;
 function App() {
   const [fileData, setFileData] = useState<any[]>([]);
   const [imageUrl, setImageUrl] = useState('');
-  const [fileSize, setFileSize] = useState(0);
+  const sizeRef = useRef<number>(0);
   const blobRef = useRef<Blob>();
 
   useEffect(() => {
@@ -31,24 +31,30 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (!blobRef.current || blobRef.current?.size <= fileSize) {
+    if (!blobRef.current || blobRef.current?.size <= sizeRef.current) {
       socket.emit('requestFile', { fileName: 'test.png' });
     }
 
     socket.on('fileSize', (size) => {
       console.log('size: ', size);
-      setFileSize(size);
+      sizeRef.current = size;
     });
 
     socket.on('fileChunk', (chunk) => {
-      setFileData((oldChunks) => [...oldChunks, chunk]);
+      if (!blobRef.current || blobRef.current?.size <= sizeRef.current) {
+        setFileData((oldChunks) => {
+          blobRef.current = new Blob([...oldChunks, chunk], {
+            type: 'image/png',
+          });
+          return [...oldChunks, chunk];
+        });
+        // console.log('blob: ', blob);
+        // blobRef.current = blob;
+      }
     });
 
     socket.on('fileComplete', () => {
-      const blob = new Blob(fileData, { type: 'image/png' });
-      console.log('blob: ', blob);
-      blobRef.current = blob;
-      setImageUrl(URL.createObjectURL(blob));
+      setImageUrl(URL.createObjectURL(blobRef.current as Blob));
     });
 
     return () => {
@@ -58,7 +64,7 @@ function App() {
       }
     };
   }, [imageUrl]);
-  console.log('imageUrl: ', imageUrl);
+  console.log('blobRef.current: ', blobRef.current);
 
   return (
     <div className="App">
