@@ -1,0 +1,91 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - be_1
+      - be_2
+      - be_3
+    networks:
+      - backend-network
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: on-failure
+    volumes:
+      - ./.redis:/data
+    ports:
+      - '6379'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - backend-network
+
+  be_1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: be_1
+    restart: on-failure
+    ports:
+      - '3000'
+    environment:
+      - REDIS_HOST=redis
+    env_file:
+      - .env-dev.docker
+    depends_on:
+      - redis
+    links:
+      - redis
+    networks:
+      - backend-network
+
+  be_2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: be_2
+    ports:
+      - '3000'
+    env_file:
+      - .env-dev.docker
+    depends_on:
+      - redis
+    links:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+    networks:
+      - backend-network
+
+  be_3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: be_3
+    ports:
+      - '3000'
+    env_file:
+      - .env-dev.docker
+    depends_on:
+      - redis
+    links:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge

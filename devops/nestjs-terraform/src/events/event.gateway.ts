@@ -110,6 +110,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       readStream.on('data', (chunk) => {
         // console.log('chunk: ', chunk);
         this.server.to(client.id).emit('fileChunk', chunk);
+        // this.server.to(client.id).emit('fileChunk', {
+        //   stt: 1,
+        //   chunk,
+        // });
       });
       readStream.on('end', () => {
         this.server.emit('fileComplete');

@@ -2,7 +2,6 @@ version: '3'
 services:
   mysql:
     image: mysql:8.0.25
-    container_name: mysql
     platform: linux/amd64
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --sql_mode="" --default-authentication-plugin=mysql_native_password
     environment:
@@ -13,9 +12,77 @@ services:
       LANG: C.UTF-8
     ports:
       - 3306:3306
+    volumes:
+      - .docker/mysql/data/:/var/lib/mysql
+      - .docker/mysql/log/:/var/log/mysql
+    networks:
+      - thanhle_network
 
   redis:
     image: 'redis:6-alpine'
-    container_name: redis
     ports:
       - 6379:6379
+    volumes:
+      - .docker/redis/data/:/data
+      - .docker/redis/log/:/var/log/redis
+    networks:
+      - thanhle_network
+
+  # rabbitmq:
+  #   image: rabbitmq:3-management-alpine
+  #   container_name: 'rabbitmq'
+  #   ports:
+  #     - 5672:5672
+  #     - 15672:15672
+  #   volumes:
+  #     - .docker/rabbitmq/data/:/var/lib/rabbitmq/
+  #     - .docker/rabbitmq/log/:/var/log/rabbitmq
+  #   networks:
+  #     - thanhle_network
+
+  zookeeper:
+    image: 'bitnami/zookeeper:3.6.2'
+    ports:
+      - 2181:2181
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+    volumes:
+      - .docker/zookeeper:/var/lib/zookeeper
+    networks:
+      - thanhle_network
+
+  kafka:
+    image: 'bitnami/kafka:2.6.0'
+    ports:
+      - 9093:9093
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9092,EXTERNAL://localhost:9093
+      - KAFKA_INTER_BROKER_LISTENER_NAME=CLIENT
+      - KAFKAJS_NO_PARTITIONER_WARNING=1
+    depends_on:
+      - zookeeper
+    volumes:
+      - .docker/kafka:/bitnami/kafka
+    networks:
+      - thanhle_network
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop
+    restart: 'no'
+    ports:
+      - '9000:9000'
+    environment:
+      KAFKA_BROKERCONNECT: 'kafka:9092'
+      JVM_OPTS: '-Xms160M -Xmx480M -Xss1800K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify'
+    depends_on:
+      - 'kafka'
+    networks:
+      - thanhle_network
+
+networks:
+  thanhle_network:
+    driver: bridge

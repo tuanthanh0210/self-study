@@ -1,0 +1,41 @@
+version: '3.3'
+
+services:
+  traefik:
+    image: 'traefik:v2.10'
+    container_name: 'traefik'
+    command:
+      - '--log.level=DEBUG'
+      - '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:80'
+    ports:
+      - '80:80'
+      - '8080:8080'
+    volumes:
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+  whoami:
+    image: 'traefik/whoami'
+    container_name: 'simple-service'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.whoami.rule=Host(`test.com`)'
+      - 'traefik.http.routers.whoami.entrypoints=web'
+      - 'traefik.http.services.admin-service.loadbalancer.server.port=80'
+  nginx:
+    image: nginx
+    container_name: nginx
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.nginx.rule=Host(`test.com`)'
+      - 'traefik.http.routers.nginx.entrypoints=web'
+      - 'traefik.http.services.admin-service.loadbalancer.server.port=80'
+  nextjs:
+    image: tuanthanh94/k8s-nextjs
+    container_name: nextjs
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.web.rule=Host(`test.com`)'
+      - 'traefik.http.routers.web.entrypoints=web'
+      - 'traefik.http.services.admin-service.loadbalancer.server.port=3000'

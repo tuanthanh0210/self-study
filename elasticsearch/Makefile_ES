@@ -40,6 +40,9 @@ delete-doc:
 search-doc:
 	@curl -XGET "$(url)/$(index_name)/_search" -H 'Content-Type: application/json' -d'{ "query": { "match": { "name": "Thanh Le" }}}' | jq .
 
+search-query-string-doc:
+	@curl -XGET "$(url)/$(index_name)/_search" -H 'Content-Type: application/json' -d'{"query": { "query_string": { "query": "*Israel.Prohas*", "fields": ["username"]}}' | jq .
+
 agreration-doc:
 	@curl -XGET "$(url)/$(index_name)/_search" -H 'Content-Type: application/json' -d'{ "aggs": { "avg_age": { "avg": { "field": "age" }}}}' | jq .
 
@@ -49,4 +52,5 @@ get-mapping:
 
 # Bulk
 bulk-doc:
-	@curl -XPOST "$(url)/$(index_name)/_bulk?pretty" -H 'Content-Type: application/json' --data-binary @temp-elaticsearch.txt | jq .
+	@curl -XPOST "$(url)/$(index_name)/_bulk?pretty" -H 'Content-Type: application/json' --data-binary @mock-es.txt | jq .
+

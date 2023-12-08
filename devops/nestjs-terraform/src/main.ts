@@ -9,6 +9,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const redisIoAdapter: RedisIoAdapter = new RedisIoAdapter(app);
   await redisIoAdapter.connectToRedis();
+
   // const cors = {
   //   origin: ['*'],
   //   methods: 'GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS',
