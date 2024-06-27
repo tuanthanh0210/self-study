@@ -11,7 +11,7 @@ services:
       MYSQL_PASSWORD: p1
       LANG: C.UTF-8
     ports:
-      - 3306:3306
+      - 3316:3306
     volumes:
       - .docker/mysql/data/:/var/lib/mysql
       - .docker/mysql/log/:/var/log/mysql
@@ -72,16 +72,23 @@ services:
 
   kafdrop:
     image: obsidiandynamics/kafdrop
-    restart: 'no'
     ports:
-      - '9000:9000'
+      - 9000:9000
     environment:
-      KAFKA_BROKERCONNECT: 'kafka:9092'
-      JVM_OPTS: '-Xms160M -Xmx480M -Xss1800K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify'
-    depends_on:
-      - 'kafka'
+      KAFKA_BROKERCONNECT: kafka:9092
     networks:
       - thanhle_network
+
+  # milvus:
+  #   image: milvusdb/milvus:2.0.0-cpu-d050721-3e1b8e
+  #   ports:
+  #     - 19530:19530
+  #     - 19121:19121
+  #   volumes:
+  #     - .docker/milvus/db:/var/lib/milvus/db
+  #     - .docker/milvus/conf:/var/lib/milvus/conf
+  #   networks:
+  #     - thanhle_network
 
 networks:
   thanhle_network:

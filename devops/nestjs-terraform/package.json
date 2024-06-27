@@ -55,7 +55,8 @@
     "rxjs": "^7.2.0",
     "socket.io": "4.5.0",
     "socket.io-redis": "6.1.1",
-    "typeorm": "0.2.37"
+    "typeorm": "0.2.37",
+    "web3": "^4.10.0"
   },
   "devDependencies": {
     "@nestjs/cli": "9.2.0",

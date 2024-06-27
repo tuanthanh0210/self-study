@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { Console, Command } from 'nestjs-console';
 import { kafka } from 'src/kafka/config';
+import { KafkaClient } from 'src/kafka/kafka-client';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -21,7 +22,10 @@ export class AppConsole {
     description: 'kafkaProducer',
   })
   async kafkaProducer(): Promise<void> {
-    const producer = kafka.producer();
+    const producer = kafka.producer({
+      allowAutoTopicCreation: true,
+      transactionTimeout: 30000,
+    });
 
     await producer.connect();
     console.log('kafkaProducer connected');
@@ -46,17 +50,41 @@ export class AppConsole {
     const consumer = kafka.consumer({ groupId: 'test-group' });
 
     await consumer.connect();
-    await consumer.subscribe({ topic: 'test-topic', fromBeginning: true });
+    await consumer.subscribe({ topic: 'test-topic', fromBeginning: false });
 
+    await consumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        console.log({
+          value: message.value.toString(),
+        });
+      },
+    });
+    await sleep(3000);
+  }
+
+  @Command({
+    command: 'kp1',
+    description: 'kafkaProducerConsumer',
+  })
+  async kp1(): Promise<void> {
     while (true) {
-      await consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-          console.log({
-            value: message.value.toString(),
-          });
-        },
-      });
+      const kafkaClient = new KafkaClient();
+      const topic = 'test-topic';
+      const message = 'Hello KafkaJS user!';
+      kafkaClient.send(topic, message);
       await sleep(3000);
     }
+  }
+  @Command({
+    command: 'kc1',
+    description: 'kafkaProducerConsumer',
+  })
+  async kc1(): Promise<void> {
+    const kafkaClient = new KafkaClient();
+    const topic = 'test-topic';
+    const groupId = 'test-group';
+    const callback = async (data) => console.log('data: ', data);
+
+    kafkaClient.consume(topic, groupId, callback);
   }
 }

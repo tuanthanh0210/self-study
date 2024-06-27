@@ -25,7 +25,7 @@ export class KafkaClient {
   async send<T>(topic: string, data: T): Promise<RecordMetadata[]> {
     await this.producer.connect();
     const result: RecordMetadata[] = await this.producer.send({
-      topic: topic,
+      topic,
       messages: [
         {
           value: serialize(data),
@@ -54,7 +54,7 @@ export class KafkaClient {
     });
     await consumer.connect();
     await consumer.subscribe({
-      topic: topic,
+      topic,
       fromBeginning: false,
       ...options,
     });

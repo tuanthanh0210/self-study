@@ -1,14 +1,15 @@
-import { Module } from '@nestjs/common';
+import { CrawlerModule } from 'src/modules/crawlers/crawler.module';
 import { CacheModule } from '@nestjs/cache-manager';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as redisStore from 'cache-manager-redis-store';
 import { ConsoleModule } from 'nestjs-console';
 import { AppConsole } from 'src/app.console';
-import { EventsModule } from 'src/events/event.module';
 import { User } from 'src/entities/user.entity';
+import { EventsModule } from 'src/events/event.module';
 import { UserRepository } from 'src/repositories/user.repo';
+import { AppController } from 'src/app.controller';
+import { AppService } from 'src/app.service';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { UserRepository } from 'src/repositories/user.repo';
       database: process.env.MYSQL_DB,
       entities: [User],
       autoLoadEntities: true,
+      synchronize: false,
     }),
     TypeOrmModule.forFeature([UserRepository]),
     CacheModule.register({
@@ -31,6 +33,7 @@ import { UserRepository } from 'src/repositories/user.repo';
       port: Number(process.env.REDIS_PORT),
     }),
     ConsoleModule,
+    CrawlerModule,
   ],
   controllers: [AppController],
   providers: [AppService, AppConsole],
