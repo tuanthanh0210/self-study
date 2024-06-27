@@ -10,6 +10,7 @@ import { EventsModule } from 'src/events/event.module';
 import { UserRepository } from 'src/repositories/user.repo';
 import { AppController } from 'src/app.controller';
 import { AppService } from 'src/app.service';
+import { RedisModule } from 'src/modules/redis/redis.module';
 
 @Module({
   imports: [
@@ -26,12 +27,7 @@ import { AppService } from 'src/app.service';
       synchronize: false,
     }),
     TypeOrmModule.forFeature([UserRepository]),
-    CacheModule.register({
-      isGlobal: true,
-      store: redisStore,
-      host: process.env.REDIS_HOST,
-      port: Number(process.env.REDIS_PORT),
-    }),
+    RedisModule,
     ConsoleModule,
     CrawlerModule,
   ],

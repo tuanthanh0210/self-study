@@ -18,4 +18,15 @@ export class Web3Service {
   getWeb3() {
     return this.web3;
   }
+
+  getContract(abi, address) {
+    return new this.web3.eth.Contract(abi, address);
+  }
+
+  getContractPanCakeSquadNft() {
+    return this.getContract(
+      pancakeSquadNftAbi,
+      '0x0a8901b0e25deb55a87524f0cc164e9644020eba',
+    );
+  }
 }

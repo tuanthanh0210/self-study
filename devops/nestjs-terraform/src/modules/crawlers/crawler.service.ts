@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { pancakeSquadNftAbi } from 'src/abis/nft';
 import { transformReturnValueNft } from 'src/helpers/utils';
 import { Web3Service } from 'src/modules/web3/web3.service';
+import axios from 'axios';
 
 @Injectable()
 export class CrawlerService {
@@ -13,17 +14,11 @@ export class CrawlerService {
     console.log('Latest block number:', Number(blockNumber));
   }
 
-  async crawlTransferEventsEth(fromBlock, toBlock) {
+  async crawlTransferEventsNft(fromBlock, toBlock) {
     // const latestBlock = Number(await web3.eth.getBlockNumber());
     // console.log("latestBlock: ", latestBlock);
-    const pancakeSquadContractAddress =
-      '0x0a8901b0e25deb55a87524f0cc164e9644020eba';
-    const web3 = this.web3Service.getWeb3();
 
-    const pancakeSquadContract = new web3.eth.Contract(
-      pancakeSquadNftAbi,
-      pancakeSquadContractAddress,
-    );
+    const pancakeSquadContract = this.web3Service.getContractPanCakeSquadNft();
 
     const res: any = await pancakeSquadContract.getPastEvents(
       // @ts-ignore
@@ -32,11 +27,29 @@ export class CrawlerService {
         fromBlock,
         toBlock,
       },
-      function (error, events) {
-        console.log(events);
-      },
     );
 
-    console.log('res: ', transformReturnValueNft(res));
+    console.log('res: ', transformReturnValueNft(res.slice(0, 1)));
+    await this.getTokenURI(res[0].returnValues.tokenId);
+    // await this.getMetadata(res[0].returnValues.tokenId);
+  }
+
+  async getTokenURI(tokenId) {
+    const pancakeSquadContract = this.web3Service.getContractPanCakeSquadNft();
+
+    const res: any = await pancakeSquadContract.methods
+      .tokenURI(tokenId)
+      .call();
+    console.log('getTokenURI: ', res);
+  }
+
+  async getMetadata(tokenId) {
+    const tokenURI = await this.getTokenURI(tokenId);
+
+    // const res: any = await pancakeSquadContract.methods
+    //   .metadata(tokenId)
+    //   .call();
+    const res = await axios.get(`${tokenURI}`);
+    console.log('getMetadata: ', res.data);
   }
 }

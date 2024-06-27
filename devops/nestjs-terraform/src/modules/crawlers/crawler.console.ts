@@ -26,9 +26,9 @@ export class CrawlerConsole {
     command: 'crawl-nft',
     description: 'Crawl the web once',
   })
-  async crawlTransferEventsEth() {
+  async crawlTransferEventsNft() {
     const fromBlock = 39912338;
     const toBlock = 39913338;
-    await this.crawlerService.crawlTransferEventsEth(fromBlock, toBlock);
+    await this.crawlerService.crawlTransferEventsNft(fromBlock, toBlock);
   }
 }
