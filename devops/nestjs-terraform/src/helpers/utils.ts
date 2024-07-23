@@ -3,11 +3,13 @@ export const sleep = (ms: number) =>
 
 export const transformReturnValueNft = (data) => {
   return data.map((returnValue) => ({
+    blockHash: returnValue.blockHash,
+    transactionHash: returnValue.transactionHash,
     event: returnValue.event,
     contractAddress: returnValue.address,
-    lastBlock: Number(returnValue.blockNumber),
-    from: returnValue.returnValues.from,
-    to: returnValue.returnValues.to,
+    blockNumber: Number(returnValue.blockNumber),
+    fromAddress: returnValue.returnValues.from,
+    toAddress: returnValue.returnValues.to,
     tokenId: Number(returnValue.returnValues.tokenId),
   }));
 };

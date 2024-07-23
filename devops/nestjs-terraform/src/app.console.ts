@@ -1,14 +1,31 @@
 // service.ts - a nestjs provider using console decorators
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Console, Command } from 'nestjs-console';
 import { kafka } from 'src/kafka/config';
 import { KafkaClient } from 'src/kafka/kafka-client';
+import { seedDatabase } from 'src/models/seed/init_sql';
+import { getConnection } from 'typeorm';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 @Console()
 @Injectable()
 export class AppConsole {
+  @Command({
+    command: 'seed',
+    description: 'Seed the database',
+  })
+  async seed(): Promise<void> {
+    try {
+      const connection = await getConnection();
+      await seedDatabase(connection);
+    } catch (error) {
+      console.log('error: ', error);
+    } finally {
+      process.exit(0);
+    }
+  }
+
   @Command({
     command: 'test',
     description: 'Demo Console',

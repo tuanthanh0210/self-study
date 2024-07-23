@@ -29,8 +29,8 @@ export class CrawlerService {
       },
     );
 
-    console.log('res: ', transformReturnValueNft(res.slice(0, 1)));
-    await this.getTokenURI(res[0].returnValues.tokenId);
+    console.log('res: ', transformReturnValueNft(res.slice(0, 2)));
+    // await this.getTokenURI(res[0].returnValues.tokenId);
     // await this.getMetadata(res[0].returnValues.tokenId);
   }
 

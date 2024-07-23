@@ -7,11 +7,11 @@ const config: TypeOrmModuleOptions = {
   username: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASS,
   database: process.env.MYSQL_DB,
-  entities: ['src/entities/*.ts'],
+  entities: ['src/models/entities/*.ts'],
   synchronize: false,
-  migrations: ['src/migrations/*.ts'],
+  migrations: ['src/models/migrations/*.ts'],
   cli: {
-    migrationsDir: 'src/migrations',
+    migrationsDir: 'src/models/migrations',
   },
 };
 export = config;

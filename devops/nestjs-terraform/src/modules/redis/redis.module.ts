@@ -1,7 +1,8 @@
 import { CacheModule } from '@nestjs/cache-manager';
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import * as redisStore from 'cache-manager-redis-store';
 
+@Global()
 @Module({
   imports: [
     CacheModule.register({

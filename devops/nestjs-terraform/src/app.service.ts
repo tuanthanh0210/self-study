@@ -2,8 +2,8 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Cache } from 'cache-manager';
-import { User } from 'src/entities/user.entity';
-import { UserRepository } from 'src/repositories/user.repo';
+import { User } from 'src/models/entities/user.entity';
+import { UserRepository } from 'src/models/repositories/user.repo';
 
 @Injectable()
 export class AppService {
